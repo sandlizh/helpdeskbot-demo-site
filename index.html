@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HelpDeskBot Demo</title>
+
+  <!-- Dialogflow CX Web Messenger -->
+  <link rel="stylesheet" href="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/themes/df-messenger-default.css">
+  <script src="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/df-messenger.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f7fa; margin:0; }
+    h2 { text-align:center; margin:80px 0 0; color:#333; }
+    df-messenger {
+      z-index: 999;
+      position: fixed;
+      --df-messenger-font-color: #000;
+      --df-messenger-font-family: Google Sans;
+      --df-messenger-chat-background: #f3f6fc;
+      --df-messenger-message-user-background: #d3e3fd;
+      --df-messenger-message-bot-background: #fff;
+      bottom: 16px;
+      right: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Need help? Chat with us below!</h2>
+
+  <df-messenger
+    location="us-central1"
+    project-id="helpdeskbot-demo"
+    agent-id="c714f50b-4f7a-40fc-b8de-41f71b21e7d6"
+    language-code="en"
+    environment="draft"
+    session-id="test-12345"
+    max-query-length="-1">
+    <df-messenger-chat-bubble chat-title="HelpDeskBot Demo"></df-messenger-chat-bubble>
+  </df-messenger>
+</body>
+</html>
