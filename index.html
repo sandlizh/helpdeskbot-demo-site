@@ -2,101 +2,147 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HelpDeskBot Demo • Dashboard & Chat</title>
-
-  <!-- Dialogflow CX Web Messenger (your existing setup) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HelpDeskBot Demo</title>
+  
+  <!-- Dialogflow CX Web Messenger (unchanged from your original) -->
   <link rel="stylesheet" href="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/themes/df-messenger-default.css">
   <script src="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/df-messenger.js"></script>
-
+  
   <style>
-    :root{
-      --bg:#0b1020; --panel:#111734; --card:#0f1430; --text:#e8edff; --muted:#a1aacb; --border:#233058; --primary:#6ea8ff; --accent:#7cf0c8; --success:#20c997;
+    :root {
+      --bg: #f4f7fa;
+      --panel: #ffffff;
+      --text: #1b2838;
+      --muted: #5b6b7a;
+      --border: #e6ecf1;
+      --primary: #2b6cb0;
+      --primary-2: #2c5282;
+      --good: #2f855a;
+      --bad: #c53030;
     }
-    *{box-sizing:border-box}
-    body{font-family:Inter, Arial, sans-serif; margin:0; color:var(--text); background:radial-gradient(1400px 900px at 80% -200px,#24356a 0%,var(--bg) 45%,#070a16 100%)}
+    * { box-sizing: border-box; }
+    body { margin:0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
 
-    /* Top title bar */
-    .topbar{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,.03));position:sticky;top:0;z-index:10}
-    .brand{font-weight:700;letter-spacing:.2px}
-    .badge{color:var(--accent);border:1px solid var(--border);padding:2px 8px;border-radius:999px;font-size:12px;margin-left:8px}
-    .spacer{flex:1}
-    .btn{border:1px solid var(--border);background:#0e1429;color:var(--text);padding:8px 12px;border-radius:10px;font-weight:600;cursor:pointer}
-    .btn:hover{border-color:#395089;background:#0f1733}
+    /* Top bar */
+    .topbar { position: sticky; top:0; z-index: 40; background: var(--panel); border-bottom:1px solid var(--border); }
+    .topbar-inner { max-width: 1120px; margin: 0 auto; display:flex; align-items:center; gap:16px; padding: 12px 16px; }
+    .brand { font-weight:700; letter-spacing:.2px; }
+    .spacer { flex:1; }
+    .btn { border:1px solid var(--border); background:#fff; padding:8px 12px; border-radius:10px; font-weight:600; cursor:pointer; }
+    .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn.primary:hover { background: var(--primary-2); }
 
-    /* Layout */
-    .wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;padding:18px}
-    @media (max-width: 980px){.wrap{grid-template-columns:1fr}}
+    /* Main */
+    .container { max-width: 1120px; margin: 24px auto; padding: 0 16px; display:grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+    @media (max-width: 960px){ .container{ grid-template-columns: 1fr; } }
 
-    .panel{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-    .panel h2{margin:0 0 8px;font-size:18px}
-    .sub{color:var(--muted);font-size:14px;margin:0 0 12px}
+    .panel { background: var(--panel); border:1px solid var(--border); border-radius: 14px; box-shadow: 0 6px 18px rgba(0,0,0,0.04); }
+    .panel > .p { padding: 16px; }
+    .panel h2 { margin: 0 0 8px; font-size: 20px; }
+    .muted { color: var(--muted); }
 
-    /* Chat wrapper (keeps your CX widget, plus greeting) */
-    .chatwrap{position:relative;min-height:520px;border-radius:14px;overflow:hidden;background:#0e1428;border:1px solid var(--border)}
-    .chathead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);background:#0f1733}
-    .status{width:10px;height:10px;border-radius:999px;background:var(--success);box-shadow:0 0 10px var(--success)}
-    .greeting{position:absolute;left:14px;bottom:14px;padding:10px 12px;background:#0f1738;border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;opacity:0;transform:translateY(10px);animation:greet .9s ease forwards .5s}
-    @keyframes greet{to{opacity:1;transform:translateY(0)}}
+    .hero { text-align:center; padding: 32px 16px 8px; }
+    .hero h1 { margin: 0; font-size: 28px; }
+    .hero p { margin: 8px 0 0; color: var(--muted); }
 
-    /* Dashboard cards & table */
-    .cards{display:grid;gap:12px;grid-template-columns:repeat(3,1fr)}
-    @media (max-width:640px){.cards{grid-template-columns:1fr}}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
-    .muted{color:var(--muted);font-size:12px}
-    .metric{font-size:28px;font-weight:700;margin-top:6px}
-    .metric.small{font-size:22px}
-    table{width:100%;border-collapse:collapse}
-    th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border);font-size:14px}
-    th{color:var(--muted);font-weight:600}
+    /* Account card */
+    .account { display:flex; align-items:center; gap: 12px; }
+    .avatar { width:40px; height:40px; border-radius: 8px; background:#e9eef5; display:grid; place-items:center; font-weight:700; color:#2d3748; }
+    .stat { font-weight:700; }
 
-    /* Keep your floating chat bubble & window */
-    df-messenger{z-index:999;position:fixed;--df-messenger-font-color:#000;--df-messenger-font-family:Google Sans;--df-messenger-chat-background:#f3f6fc;--df-messenger-message-user-background:#d3e3fd;--df-messenger-message-bot-background:#fff;bottom:16px;right:16px}
+    /* Forms */
+    .field { display:grid; gap:6px; margin: 10px 0 12px; }
+    .field label { font-size: 13px; color: var(--muted); }
+    .field input { border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size: 14px; }
+    .row { display:flex; gap:10px; }
+
+    /* Notice */
+    .notice { border:1px dashed var(--border); background:#fbfdff; border-radius: 12px; padding: 12px; font-size: 14px; color: var(--muted); }
+
+    /* Status pills */
+    .pill { display:inline-block; padding:4px 8px; font-size:12px; border-radius:999px; border:1px solid var(--border); background:#f7fafc; color:#2d3748; }
+    .pill.good { color:#22543d; border-color:#c6f6d5; background:#f0fff4; }
+    .pill.bad { color:#742a2a; border-color:#fed7d7; background:#fff5f5; }
+
+    /* Dialogflow bubble keeps original placement */
+    df-messenger {
+      z-index: 999;
+      position: fixed;
+      --df-messenger-font-color: #000;
+      --df-messenger-font-family: Google Sans, system-ui;
+      --df-messenger-chat-background: #f3f6fc;
+      --df-messenger-message-user-background: #d3e3fd;
+      --df-messenger-message-bot-background: #fff;
+      bottom: 16px;
+      right: 16px;
+    }
+
+    /* Simple modal */
+    .modal { position: fixed; inset:0; display:none; place-items:center; background: rgba(0,0,0,0.35); z-index: 1000; }
+    .modal.show { display:grid; }
+    .modal-card { width: 100%; max-width: 420px; background: #fff; color:#1a202c; border-radius: 12px; border:1px solid #e2e8f0; box-shadow: 0 20px 80px rgba(0,0,0,.18); }
+    .modal-card .hd { padding: 14px 16px; border-bottom:1px solid #edf2f7; font-weight:700; }
+    .modal-card .bd { padding: 14px 16px; }
+    .modal-card .ft { padding: 12px 16px; border-top:1px solid #edf2f7; display:flex; gap:10px; justify-content:flex-end; }
+    .err { color: var(--bad); font-size: 13px; }
+    .ok { color: var(--good); font-size: 13px; }
   </style>
 </head>
 <body>
-  <!-- Title Bar -->
-  <header class="topbar">
-    <div class="brand">HelpDeskBot Demo <span class="badge">Prototype</span></div>
-    <div class="spacer"></div>
-    <button id="simulateBtn" class="btn" title="Add a mock resolved issue">+ Log Resolved</button>
-    <button id="resetBtn" class="btn" title="Clear local stats">Reset Stats</button>
-  </header>
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">HelpDeskBot Demo</div>
+      <div class="spacer"></div>
+      <div id="authState" class="muted">Not signed in</div>
+      <button id="btnSignIn" class="btn">Sign In</button>
+      <button id="btnSignUp" class="btn">Create Account</button>
+      <button id="btnSignOut" class="btn" style="display:none">Sign Out</button>
+    </div>
+  </div>
 
-  <main class="wrap">
-    <!-- Left: Chat area (your CX widget stays the same) -->
+  <div class="hero">
+    <h1>Need help? Chat with us below!</h1>
+    <p>Sign in so the bot can assist with password resets tied to your account.</p>
+  </div>
+
+  <main class="container">
+    <!-- Left: About & Chat instructions -->
     <section class="panel">
-      <h2>Chatbot</h2>
-      <p class="sub">Try typing <strong>“reset my password”</strong> or <strong>“connect to wifi”</strong> in the chat bubble (bottom‑right).</p>
-      <div class="chatwrap" id="chatwrap">
-        <div class="chathead"><div class="status" aria-label="Online"></div><strong>HelpDesk Assistant</strong><span class="muted"> • online</span></div>
-        <div class="greeting">👋 Hi! I can help with password resets and Wi‑Fi setup. Open the chat at the bottom‑right.</div>
+      <div class="p">
+        <h2>How it works</h2>
+        <p class="muted">1) Create an account or sign in • 2) Click the chat bubble • 3) Ask: <strong>“reset my password”</strong> or <strong>“connect to wifi”</strong>.</p>
+        <div class="notice" style="margin-top:10px;">
+          <strong>Demo note:</strong> Accounts are stored <em>locally</em> in your browser (no server). This is for prototype purposes only.
+        </div>
       </div>
-      <p class="sub">Note: The Dialogflow CX widget is loaded globally, floating at the bottom‑right of the page.</p>
     </section>
 
-    <!-- Right: Lightweight dashboard stored in localStorage (for demo) -->
+    <!-- Right: Account panel -->
     <aside class="panel">
-      <h2>Dashboard</h2>
-      <p class="sub">Live prototype metrics (stored locally for demo purposes).</p>
-      <div class="cards" style="margin-top:10px;">
-        <div class="card"><div class="muted">Total Chats</div><div id="m_totalChats" class="metric">0</div></div>
-        <div class="card"><div class="muted">Resolved Issues</div><div id="m_resolved" class="metric">0</div></div>
-        <div class="card"><div class="muted">Avg. Handle Time</div><div id="m_aht" class="metric small">—</div></div>
+      <div class="p account">
+        <div class="avatar" id="avatarBox">🙂</div>
+        <div>
+          <div class="muted">Signed in as</div>
+          <div class="stat" id="userName">Guest</div>
+          <div id="acctStatus" class="pill">No session</div>
+        </div>
       </div>
-
-      <div class="card" style="margin-top:12px;">
-        <div class="muted" style="margin-bottom:8px;">Recent Resolved (last 5)</div>
-        <table>
-          <thead><tr><th>When</th><th>Issue</th><th>Ticket #</th></tr></thead>
-          <tbody id="recentTbl"></tbody>
-        </table>
+      <div class="p">
+        <h2>Password tools</h2>
+        <div class="row">
+          <button id="btnChangePw" class="btn" disabled>Change Password</button>
+          <button id="btnForgotPw" class="btn" disabled>Forgot Password</button>
+        </div>
+        <p class="muted" style="margin-top:8px;">Tip: If you’re signed in, ask the bot “reset my password”. Use the buttons above for a manual demo flow.</p>
       </div>
-      <p class="muted" style="margin-top:10px;">Hook idea: call <code>window.logResolvedIssue({ summary, ticketId, handleMs })</code> from your fulfillment to populate real stats.</p>
     </aside>
   </main>
 
-  <!-- Your existing Dialogflow CX widget (unchanged) -->
+  <!-- Dialogflow widget (your original values) -->
   <df-messenger
     location="us-central1"
     project-id="helpdeskbot-demo"
@@ -108,56 +154,232 @@
     <df-messenger-chat-bubble chat-title="HelpDeskBot Demo"></df-messenger-chat-bubble>
   </df-messenger>
 
+  <!-- Sign In Modal -->
+  <div id="modalSignIn" class="modal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mi1">
+      <div class="hd" id="mi1">Sign In</div>
+      <div class="bd">
+        <div class="field"><label>Email</label><input id="si_email" type="email" autocomplete="email"></div>
+        <div class="field"><label>Password</label><input id="si_pw" type="password" autocomplete="current-password"></div>
+        <div id="si_msg" class="err" role="alert"></div>
+      </div>
+      <div class="ft">
+        <button class="btn" data-close>Cancel</button>
+        <button id="si_go" class="btn primary">Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sign Up Modal -->
+  <div id="modalSignUp" class="modal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mu1">
+      <div class="hd" id="mu1">Create Account</div>
+      <div class="bd">
+        <div class="field"><label>Full Name</label><input id="su_name" type="text" autocomplete="name"></div>
+        <div class="field"><label>Email</label><input id="su_email" type="email" autocomplete="email"></div>
+        <div class="field"><label>Password</label><input id="su_pw" type="password" autocomplete="new-password"></div>
+        <div class="field"><label>Confirm Password</label><input id="su_pw2" type="password" autocomplete="new-password"></div>
+        <div class="notice">Passwords are hashed locally with a random salt (client‑side only) for demo purposes.</div>
+        <div id="su_msg" class="err" role="alert"></div>
+      </div>
+      <div class="ft">
+        <button class="btn" data-close>Cancel</button>
+        <button id="su_go" class="btn primary">Create Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="modalChange" class="modal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mc1">
+      <div class="hd" id="mc1">Change Password</div>
+      <div class="bd">
+        <div class="field"><label>Current Password</label><input id="cp_cur" type="password"></div>
+        <div class="field"><label>New Password</label><input id="cp_new" type="password"></div>
+        <div class="field"><label>Confirm New Password</label><input id="cp_new2" type="password"></div>
+        <div id="cp_msg" class="err" role="alert"></div>
+      </div>
+      <div class="ft">
+        <button class="btn" data-close>Cancel</button>
+        <button id="cp_go" class="btn primary">Update</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal (code flow) -->
+  <div id="modalForgot" class="modal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mf1">
+      <div class="hd" id="mf1">Forgot Password</div>
+      <div class="bd">
+        <div class="field"><label>Email</label><input id="fp_email" type="email"></div>
+        <div class="field"><label>Verification Code</label><input id="fp_code" type="text" placeholder="Enter code sent (simulated)"></div>
+        <div class="field"><label>New Password</label><input id="fp_new" type="password"></div>
+        <div id="fp_msg" class="muted" role="status">Enter your email and click "Send Code".</div>
+      </div>
+      <div class="ft">
+        <button class="btn" data-close>Close</button>
+        <button id="fp_send" class="btn">Send Code</button>
+        <button id="fp_reset" class="btn primary">Reset Password</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ---- Local demo metrics store (swap for real telemetry later) ----
-    const KEY='helpdeskbot_stats_v1';
-    const state = JSON.parse(localStorage.getItem(KEY) || '{}');
-    state.totalChats ??= 0;
-    state.resolved ??= []; // [{ts, summary, ticketId, handleMs}]
+    // ===== Simple local auth store (for demo only) =====
+    const DB_KEY = 'hdb_users_v1';
+    const SESSION_KEY = 'hdb_session_v1';
 
-    // Public helper you can call from console or DF fulfillment webhooks
-    window.logResolvedIssue = ({ summary='Password reset', ticketId=randTicket(), handleMs=90_000 }={})=>{
-      state.resolved.unshift({ ts:Date.now(), summary, ticketId, handleMs });
-      state.resolved = state.resolved.slice(0,50);
-      persist(); render();
-    };
+    const $ = (sel) => document.querySelector(sel);
+    const show = (el, yes=true) => el.style.display = yes ? '' : 'none';
 
-    // Heuristic: bump total chats when user opens the bubble the first time
-    // (Shadow DOM events are tricky; this heuristic adds once on first click anywhere in the chat area.)
-    const chatwrap=document.getElementById('chatwrap');
-    chatwrap.addEventListener('pointerdown', ()=>{ if(!state.__bumped){ state.totalChats++; state.__bumped=true; persist(); render(); } }, { once:true });
+    const users = JSON.parse(localStorage.getItem(DB_KEY) || '{}'); // {email: {name, salt, hash}}
+    let session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); // {email, name}
 
-    // Buttons to simulate and reset
-    document.getElementById('simulateBtn').addEventListener('click',()=>{
-      window.logResolvedIssue({ summary: sampleIssue(), ticketId: randTicket(), handleMs: randomInt(45_000,180_000) });
-    });
-    document.getElementById('resetBtn').addEventListener('click',()=>{
-      if(!confirm('Reset local dashboard stats?')) return;
-      state.totalChats=0; state.resolved=[]; state.__bumped=false; persist(); render();
-    });
+    function saveUsers(){ localStorage.setItem(DB_KEY, JSON.stringify(users)); }
+    function saveSession(){ localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
 
-    function persist(){ localStorage.setItem(KEY, JSON.stringify(state)); }
-    function render(){
-      document.getElementById('m_totalChats').textContent = state.totalChats;
-      document.getElementById('m_resolved').textContent = state.resolved.length;
-      const avg = state.resolved.length ? Math.round(state.resolved.reduce((a,r)=>a+(r.handleMs||0),0)/state.resolved.length) : null;
-      document.getElementById('m_aht').textContent = avg ? formatMs(avg) : '—';
-      const tbody=document.getElementById('recentTbl'); tbody.innerHTML='';
-      state.resolved.slice(0,5).forEach(r=>{
-        const tr=document.createElement('tr');
-        tr.innerHTML = `<td>${new Date(r.ts).toLocaleString()}</td><td>${escapeHtml(r.summary)}</td><td>${r.ticketId}</td>`;
-        tbody.appendChild(tr);
-      });
+    function initials(name){ return (name||'User').split(/\s+/).map(p=>p[0]||'').slice(0,2).join('').toUpperCase(); }
+
+    async function sha256(buf){
+      const enc = new TextEncoder();
+      const hash = await crypto.subtle.digest('SHA-256', enc.encode(buf));
+      return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join('');
     }
 
-    function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
-    function randTicket(){return 'IT-'+Math.random().toString(36).slice(2,7).toUpperCase();}
-    function randomInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
-    function sampleIssue(){return ['Password reset','Wi‑Fi setup','Email not syncing','VPN connection','MFA code not received'][Math.floor(Math.random()*5)];}
-    function formatMs(ms){const m=Math.floor(ms/60000), s=Math.round((ms%60000)/1000); return `${m}m ${s}s`;}
+    function rand(len=6){ return Math.random().toString(36).slice(2, 2+len).toUpperCase(); }
 
-    render();
+    function updateUI(){
+      const authState = $('#authState');
+      const btnIn = $('#btnSignIn');
+      const btnUp = $('#btnSignUp');
+      const btnOut = $('#btnSignOut');
+
+      const changeBtn = $('#btnChangePw');
+      const forgotBtn = $('#btnForgotPw');
+
+      if(session){
+        authState.textContent = session.email;
+        show(btnIn, false); show(btnUp, false); show(btnOut, true);
+        $('#userName').textContent = session.name;
+        $('#acctStatus').textContent = 'Session active';
+        $('#acctStatus').className = 'pill good';
+        $('#avatarBox').textContent = initials(session.name);
+        changeBtn.disabled = false; forgotBtn.disabled = false;
+      } else {
+        authState.textContent = 'Not signed in';
+        show(btnIn, true); show(btnUp, true); show(btnOut, false);
+        $('#userName').textContent = 'Guest';
+        $('#acctStatus').textContent = 'No session';
+        $('#acctStatus').className = 'pill';
+        $('#avatarBox').textContent = '🙂';
+        changeBtn.disabled = true; forgotBtn.disabled = false; // forgot can work logged out
+      }
+    }
+
+    // ===== Modals =====
+    function bindModal(id){
+      const m = $(id); m.addEventListener('click', (e)=>{ if(e.target === m || e.target.hasAttribute('data-close')) m.classList.remove('show'); });
+      return m;
+    }
+    const modalSignIn = bindModal('#modalSignIn');
+    const modalSignUp = bindModal('#modalSignUp');
+    const modalChange = bindModal('#modalChange');
+    const modalForgot = bindModal('#modalForgot');
+
+    $('#btnSignIn').onclick = ()=> modalSignIn.classList.add('show');
+    $('#btnSignUp').onclick = ()=> modalSignUp.classList.add('show');
+    $('#btnSignOut').onclick = ()=> { session = null; saveSession(); updateUI(); };
+
+    // ===== Sign Up =====
+    $('#su_go').onclick = async ()=>{
+      const name = $('#su_name').value.trim();
+      const email = $('#su_email').value.trim().toLowerCase();
+      const pw = $('#su_pw').value; const pw2 = $('#su_pw2').value;
+      const msg = $('#su_msg'); msg.textContent = '';
+      if(!name || !email || !pw){ msg.textContent = 'Please fill out all fields.'; return; }
+      if(pw !== pw2){ msg.textContent = 'Passwords do not match.'; return; }
+      if(users[email]){ msg.textContent = 'An account already exists for this email.'; return; }
+      const salt = rand(12);
+      const hash = await sha256(salt + '|' + pw);
+      users[email] = { name, salt, hash };
+      saveUsers();
+      session = { email, name };
+      saveSession();
+      modalSignUp.classList.remove('show');
+      updateUI();
+    };
+
+    // ===== Sign In =====
+    $('#si_go').onclick = async ()=>{
+      const email = $('#si_email').value.trim().toLowerCase();
+      const pw = $('#si_pw').value;
+      const msg = $('#si_msg'); msg.textContent = '';
+      const rec = users[email];
+      if(!rec){ msg.textContent = 'No account for that email.'; return; }
+      const hash = await sha256(rec.salt + '|' + pw);
+      if(hash !== rec.hash){ msg.textContent = 'Incorrect password.'; return; }
+      session = { email, name: rec.name };
+      saveSession();
+      modalSignIn.classList.remove('show');
+      updateUI();
+    };
+
+    // ===== Change Password =====
+    $('#btnChangePw').onclick = ()=> modalChange.classList.add('show');
+    $('#cp_go').onclick = async ()=>{
+      if(!session) return;
+      const email = session.email;
+      const rec = users[email];
+      const cur = $('#cp_cur').value; const npw = $('#cp_new').value; const npw2 = $('#cp_new2').value;
+      const msg = $('#cp_msg'); msg.textContent = '';
+      if(!cur || !npw){ msg.textContent = 'Please complete all fields.'; return; }
+      if(npw !== npw2){ msg.textContent = 'New passwords do not match.'; return; }
+      const chk = await sha256(rec.salt + '|' + cur);
+      if(chk !== rec.hash){ msg.textContent = 'Current password is incorrect.'; return; }
+      const newsalt = rand(12);
+      const newhash = await sha256(newsalt + '|' + npw);
+      users[email] = { name: rec.name, salt: newsalt, hash: newhash };
+      saveUsers();
+      $('#cp_msg').className = 'ok';
+      $('#cp_msg').textContent = 'Password updated.';
+      setTimeout(()=>{ modalChange.classList.remove('show'); $('#cp_msg').className='err'; $('#cp_msg').textContent=''; $('#cp_cur').value=''; $('#cp_new').value=''; $('#cp_new2').value=''; }, 800);
+    };
+
+    // ===== Forgot Password (code flow) =====
+    let _resetCode = null, _resetEmail = null;
+    $('#btnForgotPw').onclick = ()=>{ _resetCode = null; _resetEmail = null; $('#fp_msg').textContent='Enter your email and click "Send Code".'; modalForgot.classList.add('show'); };
+    $('#fp_send').onclick = ()=>{
+      const email = $('#fp_email').value.trim().toLowerCase();
+      if(!users[email]){ $('#fp_msg').textContent = 'No account found for that email.'; return; }
+      _resetEmail = email; _resetCode = rand(6);
+      $('#fp_msg').textContent = `Code sent (simulated): ${_resetCode}`;
+    };
+    $('#fp_reset').onclick = async ()=>{
+      const code = $('#fp_code').value.trim().toUpperCase();
+      const npw = $('#fp_new').value;
+      if(!_resetEmail || !_resetCode){ $('#fp_msg').textContent = 'Please request a code first.'; return; }
+      if(code !== _resetCode){ $('#fp_msg').textContent = 'Invalid code.'; return; }
+      const newsalt = rand(12);
+      const newhash = await sha256(newsalt + '|' + npw);
+      const rec = users[_resetEmail];
+      users[_resetEmail] = { name: rec.name, salt: newsalt, hash: newhash };
+      saveUsers();
+      $('#fp_msg').textContent = 'Password reset. You can now sign in with your new password.';
+      setTimeout(()=>{ modalForgot.classList.remove('show'); }, 900);
+    };
+
+    // Expose a tiny helper so your Dialogflow fulfillment (or you in console) can "simulate" a reset action
+    window.demoResolveReset = function(){
+      // For example, call this after guiding the user in chat.
+      // Here we just surface a friendly toast/state change; in a real app you would call your backend.
+      const el = document.createElement('div');
+      el.textContent = 'Chatbot: Password reset guidance completed (demo).';
+      el.style.position='fixed'; el.style.bottom='90px'; el.style.right='16px'; el.style.background='#1a202c'; el.style.color='#fff'; el.style.padding='10px 12px'; el.style.borderRadius='10px'; el.style.boxShadow='0 10px 30px rgba(0,0,0,.2)'; el.style.zIndex=1001;
+      document.body.appendChild(el);
+      setTimeout(()=> el.remove(), 2000);
+    }
+
+    updateUI();
   </script>
 </body>
 </html>
-
