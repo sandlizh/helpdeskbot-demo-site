@@ -3,31 +3,100 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HelpDeskBot Demo</title>
+  <title>HelpDeskBot Demo • Dashboard & Chat</title>
 
-  <!-- Dialogflow CX Web Messenger -->
+  <!-- Dialogflow CX Web Messenger (your existing setup) -->
   <link rel="stylesheet" href="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/themes/df-messenger-default.css">
   <script src="https://www.gstatic.com/dialogflow-console/fast/df-messenger/prod/v1/df-messenger.js"></script>
 
   <style>
-    body { font-family: Arial, sans-serif; background:#f4f7fa; margin:0; }
-    h2 { text-align:center; margin:80px 0 0; color:#333; }
-    df-messenger {
-      z-index: 999;
-      position: fixed;
-      --df-messenger-font-color: #000;
-      --df-messenger-font-family: Google Sans;
-      --df-messenger-chat-background: #f3f6fc;
-      --df-messenger-message-user-background: #d3e3fd;
-      --df-messenger-message-bot-background: #fff;
-      bottom: 16px;
-      right: 16px;
+    :root{
+      --bg:#0b1020; --panel:#111734; --card:#0f1430; --text:#e8edff; --muted:#a1aacb; --border:#233058; --primary:#6ea8ff; --accent:#7cf0c8; --success:#20c997;
     }
+    *{box-sizing:border-box}
+    body{font-family:Inter, Arial, sans-serif; margin:0; color:var(--text); background:radial-gradient(1400px 900px at 80% -200px,#24356a 0%,var(--bg) 45%,#070a16 100%)}
+
+    /* Top title bar */
+    .topbar{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,.03));position:sticky;top:0;z-index:10}
+    .brand{font-weight:700;letter-spacing:.2px}
+    .badge{color:var(--accent);border:1px solid var(--border);padding:2px 8px;border-radius:999px;font-size:12px;margin-left:8px}
+    .spacer{flex:1}
+    .btn{border:1px solid var(--border);background:#0e1429;color:var(--text);padding:8px 12px;border-radius:10px;font-weight:600;cursor:pointer}
+    .btn:hover{border-color:#395089;background:#0f1733}
+
+    /* Layout */
+    .wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;padding:18px}
+    @media (max-width: 980px){.wrap{grid-template-columns:1fr}}
+
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .panel h2{margin:0 0 8px;font-size:18px}
+    .sub{color:var(--muted);font-size:14px;margin:0 0 12px}
+
+    /* Chat wrapper (keeps your CX widget, plus greeting) */
+    .chatwrap{position:relative;min-height:520px;border-radius:14px;overflow:hidden;background:#0e1428;border:1px solid var(--border)}
+    .chathead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);background:#0f1733}
+    .status{width:10px;height:10px;border-radius:999px;background:var(--success);box-shadow:0 0 10px var(--success)}
+    .greeting{position:absolute;left:14px;bottom:14px;padding:10px 12px;background:#0f1738;border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;opacity:0;transform:translateY(10px);animation:greet .9s ease forwards .5s}
+    @keyframes greet{to{opacity:1;transform:translateY(0)}}
+
+    /* Dashboard cards & table */
+    .cards{display:grid;gap:12px;grid-template-columns:repeat(3,1fr)}
+    @media (max-width:640px){.cards{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
+    .muted{color:var(--muted);font-size:12px}
+    .metric{font-size:28px;font-weight:700;margin-top:6px}
+    .metric.small{font-size:22px}
+    table{width:100%;border-collapse:collapse}
+    th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border);font-size:14px}
+    th{color:var(--muted);font-weight:600}
+
+    /* Keep your floating chat bubble & window */
+    df-messenger{z-index:999;position:fixed;--df-messenger-font-color:#000;--df-messenger-font-family:Google Sans;--df-messenger-chat-background:#f3f6fc;--df-messenger-message-user-background:#d3e3fd;--df-messenger-message-bot-background:#fff;bottom:16px;right:16px}
   </style>
 </head>
 <body>
-  <h2>Need help? Chat with us below!</h2>
+  <!-- Title Bar -->
+  <header class="topbar">
+    <div class="brand">HelpDeskBot Demo <span class="badge">Prototype</span></div>
+    <div class="spacer"></div>
+    <button id="simulateBtn" class="btn" title="Add a mock resolved issue">+ Log Resolved</button>
+    <button id="resetBtn" class="btn" title="Clear local stats">Reset Stats</button>
+  </header>
 
+  <main class="wrap">
+    <!-- Left: Chat area (your CX widget stays the same) -->
+    <section class="panel">
+      <h2>Chatbot</h2>
+      <p class="sub">Try typing <strong>“reset my password”</strong> or <strong>“connect to wifi”</strong> in the chat bubble (bottom‑right).</p>
+      <div class="chatwrap" id="chatwrap">
+        <div class="chathead"><div class="status" aria-label="Online"></div><strong>HelpDesk Assistant</strong><span class="muted"> • online</span></div>
+        <div class="greeting">👋 Hi! I can help with password resets and Wi‑Fi setup. Open the chat at the bottom‑right.</div>
+      </div>
+      <p class="sub">Note: The Dialogflow CX widget is loaded globally, floating at the bottom‑right of the page.</p>
+    </section>
+
+    <!-- Right: Lightweight dashboard stored in localStorage (for demo) -->
+    <aside class="panel">
+      <h2>Dashboard</h2>
+      <p class="sub">Live prototype metrics (stored locally for demo purposes).</p>
+      <div class="cards" style="margin-top:10px;">
+        <div class="card"><div class="muted">Total Chats</div><div id="m_totalChats" class="metric">0</div></div>
+        <div class="card"><div class="muted">Resolved Issues</div><div id="m_resolved" class="metric">0</div></div>
+        <div class="card"><div class="muted">Avg. Handle Time</div><div id="m_aht" class="metric small">—</div></div>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div class="muted" style="margin-bottom:8px;">Recent Resolved (last 5)</div>
+        <table>
+          <thead><tr><th>When</th><th>Issue</th><th>Ticket #</th></tr></thead>
+          <tbody id="recentTbl"></tbody>
+        </table>
+      </div>
+      <p class="muted" style="margin-top:10px;">Hook idea: call <code>window.logResolvedIssue({ summary, ticketId, handleMs })</code> from your fulfillment to populate real stats.</p>
+    </aside>
+  </main>
+
+  <!-- Your existing Dialogflow CX widget (unchanged) -->
   <df-messenger
     location="us-central1"
     project-id="helpdeskbot-demo"
@@ -38,5 +107,57 @@
     max-query-length="-1">
     <df-messenger-chat-bubble chat-title="HelpDeskBot Demo"></df-messenger-chat-bubble>
   </df-messenger>
+
+  <script>
+    // ---- Local demo metrics store (swap for real telemetry later) ----
+    const KEY='helpdeskbot_stats_v1';
+    const state = JSON.parse(localStorage.getItem(KEY) || '{}');
+    state.totalChats ??= 0;
+    state.resolved ??= []; // [{ts, summary, ticketId, handleMs}]
+
+    // Public helper you can call from console or DF fulfillment webhooks
+    window.logResolvedIssue = ({ summary='Password reset', ticketId=randTicket(), handleMs=90_000 }={})=>{
+      state.resolved.unshift({ ts:Date.now(), summary, ticketId, handleMs });
+      state.resolved = state.resolved.slice(0,50);
+      persist(); render();
+    };
+
+    // Heuristic: bump total chats when user opens the bubble the first time
+    // (Shadow DOM events are tricky; this heuristic adds once on first click anywhere in the chat area.)
+    const chatwrap=document.getElementById('chatwrap');
+    chatwrap.addEventListener('pointerdown', ()=>{ if(!state.__bumped){ state.totalChats++; state.__bumped=true; persist(); render(); } }, { once:true });
+
+    // Buttons to simulate and reset
+    document.getElementById('simulateBtn').addEventListener('click',()=>{
+      window.logResolvedIssue({ summary: sampleIssue(), ticketId: randTicket(), handleMs: randomInt(45_000,180_000) });
+    });
+    document.getElementById('resetBtn').addEventListener('click',()=>{
+      if(!confirm('Reset local dashboard stats?')) return;
+      state.totalChats=0; state.resolved=[]; state.__bumped=false; persist(); render();
+    });
+
+    function persist(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+    function render(){
+      document.getElementById('m_totalChats').textContent = state.totalChats;
+      document.getElementById('m_resolved').textContent = state.resolved.length;
+      const avg = state.resolved.length ? Math.round(state.resolved.reduce((a,r)=>a+(r.handleMs||0),0)/state.resolved.length) : null;
+      document.getElementById('m_aht').textContent = avg ? formatMs(avg) : '—';
+      const tbody=document.getElementById('recentTbl'); tbody.innerHTML='';
+      state.resolved.slice(0,5).forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${new Date(r.ts).toLocaleString()}</td><td>${escapeHtml(r.summary)}</td><td>${r.ticketId}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
+    function randTicket(){return 'IT-'+Math.random().toString(36).slice(2,7).toUpperCase();}
+    function randomInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+    function sampleIssue(){return ['Password reset','Wi‑Fi setup','Email not syncing','VPN connection','MFA code not received'][Math.floor(Math.random()*5)];}
+    function formatMs(ms){const m=Math.floor(ms/60000), s=Math.round((ms%60000)/1000); return `${m}m ${s}s`;}
+
+    render();
+  </script>
 </body>
 </html>
+
